@@ -1,0 +1,76 @@
+run_name: OLMo-1.7-7B-Unlearn
+
+seed: 6198
+
+model:
+  d_model: 4096
+  n_heads: 32
+  n_layers: 32
+  mlp_hidden_size: 22016
+  weight_tying: false
+  alibi: false
+  rope: true
+  flash_attention: true
+  attention_dropout: 0.0
+  attention_layer_norm: false
+  clip_qkv: 8.0
+  include_bias: false
+  block_type: sequential
+  layer_norm_type: default
+  layer_norm_with_affine: false
+  bias_for_layer_norm: false
+  attention_layer_norm_with_affine: false
+  activation_type: swiglu
+  residual_dropout: 0.0
+  embedding_dropout: 0.0
+  max_sequence_length: 4096
+  vocab_size: 50280
+  embedding_size: 50304
+  eos_token_id: 50279
+  pad_token_id: 1
+  init_device: meta
+  init_fn: mitchell
+
+optimizer:
+  name: adamw
+  learning_rate: 3.0e-4
+  weight_decay: 0.1
+  decay_norm_and_bias: true
+  decay_embeddings: true
+  betas:
+  - 0.9
+  - 0.95
+
+scheduler:
+  name: cosine_with_warmup
+  units: tokens
+  t_warmup: 10485760000
+  t_max: 3e12  # Adjust this based on your dataset size and number of epochs
+  alpha_f: 0.1
+
+tokenizer:
+  identifier: allenai/OLMo-7B-0724-Instruct
+
+save_folder: /scratch/arjun.dosajh/runs/${run_name}  # This will save checkpoints in a folder named after your run_name
+save_interval: 1000  # Adjust this based on how often you want to save checkpoints
+
+load_path: /scratch/arjun.dosajh/semeval25-unlearning-model  # Change this to the path of your pre-trained OLMo model
+
+max_duration: 2ep  # Adjust this based on how many epochs you want to fine-tune for
+global_train_batch_size: 1  # Adjust this based on your GPU memory and dataset size
+device_train_microbatch_size: 1  # Adjust this based on your GPU memory
+
+precision: amp_bf16  # Change this if you need a different precision (e.g., 'fp32', 'amp_fp16')
+
+data:
+  pad_direction: right
+  num_workers: 32  # Adjust based on your CPU cores
+  drop_last: true
+  pin_memory: true
+  prefetch_factor: 8
+  persistent_workers: true
+  timeout: 0
+  paths:
+    - ~/ANLP/Project/tulu-dataset/input_ids.npy  # Replace with the path to your input_ids.npy file
+
+# Remove or comment out the 'evaluators' section if you don't need in-training evaluation
